@@ -1,0 +1,247 @@
+openapi: 3.0.3
+info:
+  contact:
+    email: info@ftechlabs.com
+    name: FTech Labs
+    url: http://ftechlabs.com
+  title: TradeMobile RESTful APIs
+  description: A set of APIs to allow applications interact to with the TradeMobile system.
+  version: 1.0.0
+
+servers:
+- url: http://localhost:9898/v1
+
+security:
+- bearerAuth:
+  - regular
+- cookieAuth:
+  - regular
+
+paths:
+  /languages:
+    get:
+      operationId: Languages
+      summary: Get languages.
+      tags: [ Common ]
+      security: [ ]
+      responses:
+        "200":
+          description: Returns languages.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LanguageResponse'
+        "403":
+          $ref: '#/components/responses/SecurityError'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /feedbacks:
+    post:
+      operationId: SendFeedback
+      summary: Send feedback
+      tags: [ Common ]
+      security: [ ]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                subject:
+                  type: string
+                message:
+                  type: string                  
+                device:
+                  type: string
+                attachment:
+                  type: string
+                  format: binary                  
+            encoding:
+              attachment:
+                contentType: image/png, image/jpeg, image/jpg, image/gif
+      responses:
+        "204":
+          description: The feedback has been sent successfully.
+        "403":
+          $ref: '#/components/responses/SecurityError'
+        "500":
+          $ref: '#/components/responses/InternalError'
+  
+  /fileupload1:
+    post:
+      operationId: FileUpload1
+      summary: Uploads a file.
+      tags: [ Common ]
+      security: [ ]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                subject:
+                  type: string
+                message:
+                  type: string                  
+                device:
+                  type: string
+                attachment:
+                  type: string
+                  format: binary                  
+            encoding:
+              attachment:
+                contentType: image/png, image/jpeg, image/jpg, image/gif
+      responses:
+        "204":
+          description: The feedback has been sent successfully.
+        "403":
+          $ref: '#/components/responses/SecurityError'
+        "500":
+          $ref: '#/components/responses/InternalError'   
+          
+  /fileupload2:
+    post:
+      operationId: FileUpload2
+      summary: Uploads a file.
+      tags: [ Common ]
+      security: [ ]
+      requestBody:
+        content:
+          'image/jpeg':
+            schema:
+              type: object
+              format: binary
+          'image/png':
+            schema:
+              type: object
+              format: binary
+          'image/gif':
+            schema:
+              type: object
+              format: binary
+      responses:
+        "204":
+          description: The feedback has been sent successfully.
+        "403":
+          $ref: '#/components/responses/SecurityError'
+        "500":
+          $ref: '#/components/responses/InternalError'          
+
+
+  /spec{format}:
+    get:
+      description: It returns the specification of this API.
+      operationId: GetAPISpec
+      parameters:
+      - description: It can be used to indicate desired response format.
+        in: path
+        name: format
+        required: true
+        schema:
+          enum:
+          - .json
+          - .yml
+          - .yaml
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+            text/yaml:
+              schema:
+                type: string
+          description: OpenAPI 3.0 Specification
+        "500":
+          $ref: '#/components/responses/InternalError'
+      security: []
+      summary: Get OpenAPI 3 specification.
+      tags:
+      - Fundamental
+      
+
+components:
+  schemas:
+    ErrorCode:
+      type: string
+      enum: 
+        - GENERIC
+        - SECURITY_FAILED
+        - INVALID_REQUEST
+        - RELOGIN_REQUIRED
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: '#/components/schemas/Error'
+
+    Error:
+        type: object
+        required: [code, message]
+        properties:
+          code:
+            $ref: '#/components/schemas/ErrorCode'
+          message:
+            type: string
+          
+    LanguageResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/Language'
+
+    Language:
+      type: object
+      required: [id, culture_code, name, rtl, published, display_order]
+      properties:
+        id:
+          type: integer
+          format: int
+        culture_code:
+          type: string
+        name:
+          type: string
+        rtl:
+          type: boolean
+        published:
+          type: boolean
+        display_order:
+          type: integer
+          format: int
+
+  responses:
+    ClientSideError:
+      description: Client side error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    SecurityError:
+      description: Security Error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalError:
+      description: Internal Error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  securitySchemes:
+    bearerAuth:
+      bearerFormat: Custom
+      scheme: bearer
+      type: http
+    cookieAuth:
+      in: cookie
+      name: tm_session
+      type: apiKey
